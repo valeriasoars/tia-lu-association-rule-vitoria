@@ -1,4 +1,3 @@
-# eclat.py
 import math
 from collections import defaultdict
 from itertools import combinations
@@ -19,36 +18,40 @@ class MineradorECLAT:
         self.regras = []
 
     def _construir_tidlist(self, transacoes):
-        tid = defaultdict(set)
-        for t_id, itens in enumerate(transacoes):
-            for it in itens:
-                tid[it].add(t_id)
-        return {item: frozenset(tids) for item, tids in tid.items()}
+        tidlist = defaultdict(set) #Cria dicionário onde cada item adicionado(chave) é acompanhado de um conjunto vazio(valor) -- set porque evita duplicatas
+        for id_transacao, lista_itens in enumerate(transacoes): #percorre todas as transações passadas e dá um id a elas(através do enumerate)
+            for produto in lista_itens: #percorre cada produto da lista de produtos
+                tidlist[produto].add(id_transacao) #cria o produto como item no dicionário (se ele já não existir) e adciona a transação presente. 
+        return {item: frozenset(tids) for item, tids in tidlist.items()} #transforma cada conjunto de produtos (conjunto de traasações - valor dos items do dict) em um frozenset(conjunto que não pode ter alterado)  
+        #Retorna um TID List (Dicionario com item e conjunto de tranasações)
 
     def _eclat(self, tidlist, min_count):
-        # 1-itemsets
-        L1 = [(frozenset([i]), tids) for i, tids in tidlist.items() if len(tids) >= min_count]
-        L1.sort(key=lambda x: len(x[1]))
-        freq = {}
+        
+        itens_frequentes = [(frozenset([item]), transacoes) for item, transacoes in tidlist.items() if len(transacoes) >= min_count] #Adicona cada 
+        #item no formato frozen e sua respectiva lista de tranasações(TID) 
+        #na lista_frequentes caso possuam a quantidade de transações estipulada. 
+        itens_frequentes.sort(key=lambda x: len(x[1])) #Ordena a lista de frequentes do menos para mais frequente
 
-        def dfs(prefix_items, prefix_tids, tail):
-            for idx in range(len(tail)):
-                Xi_items, Xi_tids = tail[idx]
-                novo_items = prefix_items | Xi_items if prefix_items else Xi_items
-                novo_tids  = (prefix_tids & Xi_tids) if prefix_items else Xi_tids
-                sup = len(novo_tids)
-                if sup >= min_count:
-                    freq[novo_items] = sup
+        combinacoes_frequentes = {} #dicionario vazio que terá as combinações
+
+        def dfs(prefix_items, prefix_tids, tail): #prefix_items é o conjunto atual de itens que estamos combinando(vazio no começo), prefix_tids é o conjunto de transações onde os itens aparecem juntos e tail é a lista dos proximos itens candidatos a combinar com o prefixo.  
+            for indice_item in range(len(tail)):
+                itens_atuais, transacoes_atuais = tail[indice_item] #Desempacota a tupla em dois elementos (os itens e as combinações em que ele está presente)
+                novo_items = prefix_items | itens_atuais if prefix_items else itens_atuais
+                novo_tids  = (prefix_tids & transacoes_atuais) if prefix_items else transacoes_atuais
+                suport = len(novo_tids)
+                if suport >= min_count:
+                    combinacoes_frequentes[novo_items] = suport
                     novo_tail = []
-                    for Yj_items, Yj_tids in tail[idx+1:]:
-                        inter = novo_tids & Yj_tids
-                        if len(inter) >= min_count:
-                            novo_tail.append((Yj_items, inter))
+                    for proximo_items, proximo_tids in tail[indice_item + 1:]:
+                        interceccao = novo_tids & proximo_tids
+                        if len(interceccao) >= min_count:
+                            novo_tail.append((proximo_items, interceccao))
                     novo_tail.sort(key=lambda x: len(x[1]))
                     dfs(novo_items, novo_tids, novo_tail)
 
-        dfs(frozenset(), frozenset(), L1)
-        return freq
+        dfs(frozenset(), frozenset(), itens_frequentes)
+        return combinacoes_frequentes
 
     def ajustar(self, transacoes, max_tamanho: int = None):
         self.transacoes = [sorted(set(t)) for t in transacoes if t]

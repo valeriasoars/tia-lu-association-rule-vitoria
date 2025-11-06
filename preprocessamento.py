@@ -1,4 +1,3 @@
-# preprocessamento.py
 import pandas as pd
 import re
 import unidecode
@@ -19,7 +18,7 @@ class PreprocessadorVestuario:
             "pares","cos","bojo","aberto","tradicional","algodao","elastico","cordao"
         }
 
-        #Categorias extraídas por nós - Adicionar uma exploração com pandas no no projeto?  
+        #Categorias extraídas por nós - Adicionar uma exploração com pandas no projeto?  
         self.categorias_mapeamento = {
             # superiores
             "camisa": {"camisa","camiseta","blusa","polo","t shirt","tshirt"},
@@ -60,7 +59,7 @@ class PreprocessadorVestuario:
     def extrair_categorias(self, descricao_original: str) -> list[str]:
         if not isinstance(descricao_original, str) or not descricao_original.strip():
             return []
-        descricao = unidecode.unidecode(descricao_original.lower())
+        descricao = unidecode.unidecode(descricao_original.lower()) ##Tirar? 
         categorias = set()
         for categoria, palavras_correspondentes in self.categorias_mapeamento.items():
             for palavra in palavras_correspondentes:
@@ -72,7 +71,7 @@ class PreprocessadorVestuario:
     #Processa os dados, retornando um DATAFRAME com o id de cada transação e uma lista de produtos(categorias) em cada linha. 
     def processar(self, caminho_csv: str) -> pd.DataFrame:
         print("Processando dados...")
-        dados = pd.read_csv(caminho_csv, dtype={"id_transacao": str}).dropna(subset=["descricao_produtos"])
+        dados = pd.read_csv(caminho_csv, dtype={"id_transacao": str}).dropna(subset=["descricao_produtos"]) 
 
         dados["descricao_limpa"] = dados["descricao_produtos"].apply(self.limpar_descricao_produtos)
         """.apply é equivalente a 
@@ -84,16 +83,16 @@ class PreprocessadorVestuario:
         print("Usando CATEGORIAS de produtos")
         dados["lista_produtos"] = dados["descricao_produtos"].apply(self.extrair_categorias)
 
-        dados["lista_produtos"] = dados["lista_produtos"].apply(lambda xs: sorted(set(xs)) if xs else [])
+        dados["lista_produtos"] = dados["lista_produtos"].apply(lambda lista_itens: sorted(set(lista_itens)) if lista_itens else [])
         dados = dados[dados["lista_produtos"].apply(len) > 0].copy()
 
-        # Estatísticas simples -- Não sei também se nós sozinhos teríamos mantido isso
+        """# Estatísticas simples -- Não sei também se nós sozinhos teríamos mantido isso
         todos = [item for xs in dados["lista_produtos"] for item in xs]
         contagem = Counter(todos)
         print(f"{len(dados)} transações válidas | {len(contagem)} itens/categorias únicos(as)")
         print("Top 10 itens/categorias:")
         for item, cnt in contagem.most_common(10):
-            print(f"  • {item:15s}: {cnt:4d} ({cnt/len(dados):5.2%})")
+            print(f"  • {item:15s}: {cnt:4d} ({cnt/len(dados):5.2%})")"""
 
 
         return dados[["id_transacao","lista_produtos"]]
@@ -101,10 +100,10 @@ class PreprocessadorVestuario:
 
 # --------------------
 #Não sei se a gente realmente faria essas funções de vizualização aqui.
-def salvar_transacoes(df_proc: pd.DataFrame, caminho_out: str = "transacoes_categorias.csv"):
-    """ Salva o dataset pré-processado no formato:
+"""def salvar_transacoes(df_proc: pd.DataFrame, caminho_out: str = "transacoes_categorias.csv"):
+     Salva o dataset pré-processado no formato:
         id_transacao, lista_produtos (pipe-separated)
-    """
+    
     df_out = df_proc.copy()
     df_out["lista_produtos"] = df_out["lista_produtos"].apply(lambda xs: "|".join(xs))
     df_out.to_csv(caminho_out, index=False, encoding="utf-8")
@@ -112,9 +111,9 @@ def salvar_transacoes(df_proc: pd.DataFrame, caminho_out: str = "transacoes_cate
 
 
 def salvar_onehot(df_proc: pd.DataFrame, caminho_out: str = "matriz_onehot.csv"):
-    """
+    
     Salva matriz binária transacao × categoria (one-hot).
-    """
+    
     dfe = df_proc.copy().explode("lista_produtos").dropna(subset=["lista_produtos"])
     dfe["valor"] = 1
     # Pivot para matriz
@@ -123,7 +122,7 @@ def salvar_onehot(df_proc: pd.DataFrame, caminho_out: str = "matriz_onehot.csv")
         .reset_index()
     )
     matriz.to_csv(caminho_out, index=False, encoding="utf-8")
-    print(f"✓ Matriz one-hot salva em '{caminho_out}'")
+    print(f"✓ Matriz one-hot salva em '{caminho_out}'")"""
 
 
 

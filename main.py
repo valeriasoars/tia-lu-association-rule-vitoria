@@ -1,6 +1,5 @@
-# main.py
 import pandas as pd
-from preprocessamento import PreprocessadorVestuario, salvar_onehot, salvar_transacoes
+from preprocessamento import PreprocessadorVestuario
 from eclat import MineradorECLAT
 from analise import analisar_resultados, exemplos_recomendacao
 
@@ -12,10 +11,6 @@ if __name__ == "__main__":
     df_proc = prep.processar(caminho_csv)
     transacoes = df_proc["lista_produtos"].tolist()
     print(f"\nTransações após processamento: {len(transacoes)}")
-
-    # para viaualização
-    salvar_transacoes(df_proc, "transacoes_categorias.csv")
-    salvar_onehot(df_proc, "matriz_onehot.csv")
 
     # 2) ECLAT
     miner = MineradorECLAT(min_suporte=0.01, min_confianca=0.40, min_lift=1.10)

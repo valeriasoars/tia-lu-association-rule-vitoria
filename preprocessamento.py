@@ -32,6 +32,7 @@ class PreprocessadorVestuario:
             "cueca": {"cueca","boxer","cuecas"},
             "sutia": {"sutia","top"},
             "sunga": {"sunga"},
+            "fralda_pano": {"fralda","fraldinha","cueiro"},
             # dormir
             "pijama": {"pijama","baby doll"},
             # outros
@@ -40,7 +41,10 @@ class PreprocessadorVestuario:
             "macacao": {"macacao","macaquito"},
             "jaqueta": {"jaqueta","casaco","cardigan"},
             "vestido": {"vestido","vestidos"},
-            "biquini": {"biquini","bikini"}
+            "biquini": {"biquini","bikini"},
+            "toalha": {"toalha","toalhas","toalha rosto","toalha banho","toalha de rosto","toalha de banho"},
+            "roupa_cama": {"lencol","lençol","jogo de cama","fronha","edredom","coberta","cobertor","manta","cobre leito"},
+
         }
 
     #Usa o unicode e o re pra padronizar os textos de descricao

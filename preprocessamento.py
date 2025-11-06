@@ -86,44 +86,5 @@ class PreprocessadorVestuario:
         dados["lista_produtos"] = dados["lista_produtos"].apply(lambda lista_itens: sorted(set(lista_itens)) if lista_itens else [])
         dados = dados[dados["lista_produtos"].apply(len) > 0].copy()
 
-        """# Estatísticas simples -- Não sei também se nós sozinhos teríamos mantido isso
-        todos = [item for xs in dados["lista_produtos"] for item in xs]
-        contagem = Counter(todos)
-        print(f"{len(dados)} transações válidas | {len(contagem)} itens/categorias únicos(as)")
-        print("Top 10 itens/categorias:")
-        for item, cnt in contagem.most_common(10):
-            print(f"  • {item:15s}: {cnt:4d} ({cnt/len(dados):5.2%})")"""
-
-
         return dados[["id_transacao","lista_produtos"]]
-    
-
-# --------------------
-#Não sei se a gente realmente faria essas funções de vizualização aqui.
-"""def salvar_transacoes(df_proc: pd.DataFrame, caminho_out: str = "transacoes_categorias.csv"):
-     Salva o dataset pré-processado no formato:
-        id_transacao, lista_produtos (pipe-separated)
-    
-    df_out = df_proc.copy()
-    df_out["lista_produtos"] = df_out["lista_produtos"].apply(lambda xs: "|".join(xs))
-    df_out.to_csv(caminho_out, index=False, encoding="utf-8")
-    print(f"✓ Transações salvas em '{caminho_out}'")
-
-
-def salvar_onehot(df_proc: pd.DataFrame, caminho_out: str = "matriz_onehot.csv"):
-    
-    Salva matriz binária transacao × categoria (one-hot).
-    
-    dfe = df_proc.copy().explode("lista_produtos").dropna(subset=["lista_produtos"])
-    dfe["valor"] = 1
-    # Pivot para matriz
-    matriz = (
-        dfe.pivot_table(index="id_transacao", columns="lista_produtos", values="valor", fill_value=0, aggfunc="max")
-        .reset_index()
-    )
-    matriz.to_csv(caminho_out, index=False, encoding="utf-8")
-    print(f"✓ Matriz one-hot salva em '{caminho_out}'")"""
-
-
-
 

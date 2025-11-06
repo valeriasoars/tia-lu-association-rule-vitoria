@@ -25,81 +25,89 @@ class MineradorECLAT:
         return {item: frozenset(tids) for item, tids in tidlist.items()} #transforma cada conjunto de produtos (conjunto de traasações - valor dos items do dict) em um frozenset(conjunto que não pode ter alterado)  
         #Retorna um TID List (Dicionario com item e conjunto de tranasações)
 
-    def _eclat(self, tidlist, min_count):
+    def _eclat(self, tidlist, min_count): 
         
         itens_frequentes = [(frozenset([item]), transacoes) for item, transacoes in tidlist.items() if len(transacoes) >= min_count] #Adicona cada 
         #item no formato frozen e sua respectiva lista de tranasações(TID) 
         #na lista_frequentes caso possuam a quantidade de transações estipulada. 
         itens_frequentes.sort(key=lambda x: len(x[1])) #Ordena a lista de frequentes do menos para mais frequente
+        
+        combinacoes_frequentes= {} #cria dict vazio para guardar as combinações frequentes
 
-        combinacoes_frequentes = {} #dicionario vazio que terá as combinações
+        def gerar_combinacoes_frequentes(itens_prefixo, itens_restantes, combinacoes_frequentes): #recebe o prefixo(inicialmente vazio), os itens para combinar com o prefixo e o dict
 
-        def dfs(prefix_items, prefix_tids, tail): #prefix_items é o conjunto atual de itens que estamos combinando(vazio no começo), prefix_tids é o conjunto de transações onde os itens aparecem juntos e tail é a lista dos proximos itens candidatos a combinar com o prefixo.  
-            for indice_item in range(len(tail)):
-                itens_atuais, transacoes_atuais = tail[indice_item] #Desempacota a tupla em dois elementos (os itens e as combinações em que ele está presente)
-                novo_items = prefix_items | itens_atuais if prefix_items else itens_atuais
-                novo_tids  = (prefix_tids & transacoes_atuais) if prefix_items else transacoes_atuais
-                suport = len(novo_tids)
-                if suport >= min_count:
-                    combinacoes_frequentes[novo_items] = suport
-                    novo_tail = []
-                    for proximo_items, proximo_tids in tail[indice_item + 1:]:
-                        interceccao = novo_tids & proximo_tids
-                        if len(interceccao) >= min_count:
-                            novo_tail.append((proximo_items, interceccao))
-                    novo_tail.sort(key=lambda x: len(x[1]))
-                    dfs(novo_items, novo_tids, novo_tail)
+            itens_restantes_ordenados = sorted(itens_restantes.items(), key= lambda lista_itens: len(lista_itens[1])) #Ordena os itens restantes, inicialmente, todos os itens. 
 
-        dfs(frozenset(), frozenset(), itens_frequentes)
-        return combinacoes_frequentes
+            for index, (item_atual, transacoes_atuais) in enumerate(itens_restantes_ordenados): #passa por todos os itens e suas transações em itens_restantes_ordenados
+                nova_combinacao = itens_prefixo | item_atual #une o prefixo(inicialmente vazio) e o item atual
+                suporte  = len(transacoes_atuais)/self.total_transacoes #calcula suporte do item atual
 
-    def ajustar(self, transacoes, max_tamanho: int = None):
-        self.transacoes = [sorted(set(t)) for t in transacoes if t]
-        self.total_transacoes = len(self.transacoes)
-        min_count = max(1, math.ceil(self.min_suporte * self.total_transacoes))
+                if suporte >= self.min_suporte: #verifica se suporte atende o mínimo suporte definido
+                    combinacoes_frequentes[nova_combinacao] = suporte #adiciona a combinação nova e seu suporte no set de combinações frequentes
+                
+                novos_itens_restantes = {} #cria dict de itens restantes
+                for proximo_item, proxima_transacao in itens_restantes_ordenados[index + 1:]: #passa por todos os itens restantes depois do item atual que já analisamos
+                    interceccao = transacoes_atuais & proxima_transacao #verifica se existe intersecção entre o item que analisamos e o item que estamos analisando agora
+                    if len(interceccao) >= min_count: #se a intersecção for maior do que o minimo definido, colocamos o proximo item e suas transações que que também estão no item que analisamos na lista de novos itens a serem analisados
+                        novos_itens_restantes[proximo_item] = interceccao
+                    
+                if novos_itens_restantes: #se o dict de novos_itens_restantes não estiver vazio, chama a propria função, agora com o prefixo do item que analisamos primeiro, os novos itens restantes(que possuem alguma intersecao com os intensd de prefixo)
+                    gerar_combinacoes_frequentes(nova_combinacao, novos_itens_restantes, combinacoes_frequentes)
+
+        gerar_combinacoes_frequentes(frozenset(), dict(itens_frequentes), combinacoes_frequentes) #chama a função combinar para passar por todos os itens frequentes
+        return combinacoes_frequentes #retorna todas as combinações encontradas
+
+    def minerar_itemsets(self, transacoes, max_tamanho: int = None): #trocar nome
+        self.transacoes = [sorted(set(transacao)) for transacao in transacoes if transacao] #Remove transacoes vazias, duplicatas e ordena cada transação.
+        self.total_transacoes = len(self.transacoes) #Encontra o total de transações
+        min_count = max(1, math.ceil(self.min_suporte * self.total_transacoes)) #faz o contador mínimo, sendo 1 ou o valor que der a conta do suporte minimo. 
 
         print(f"Minerando itemsets (N={self.total_transacoes}, suporte mínimo={self.min_suporte:.2%} => {min_count})")
-        tidlist = self._construir_tidlist(self.transacoes)
-        freq_counts = self._eclat(tidlist, min_count)
+        tidlist = self._construir_tidlist(self.transacoes) #chama a função de construir o TIDLIST
+        combinacoes_encontradas = self._eclat(tidlist, min_count) #chama o eclat
 
-        # opcional: limitar por tamanho do itemset
-        if max_tamanho is not None:
-            freq_counts = {k: v for k, v in freq_counts.items() if len(k) <= max_tamanho}
+        if max_tamanho is not None: #filtra para tamanho máximo de conjuntos de itens (se houver)
+            combinacoes_encontradas = {conjunto_itens: transacoes_itens for conjunto_itens, transacoes_itens in combinacoes_encontradas.items() if len(conjunto_itens) <= max_tamanho}
 
-        self.itemsets_frequentes = freq_counts
-        print(f"Itemsets frequentes: {len(self.itemsets_frequentes)}")
-        return self
+        self.itemsets_frequentes = combinacoes_encontradas #atribui os itens frequentes as combinações encontradas no eclat
+        print(f"Itemsets frequentes: {len(self.itemsets_frequentes)}") 
+        return self #retorna o proprio objeto
 
     def gerar_regras(self):
-        regras = []
-        N = self.total_transacoes
-        for itemset, sup_xy_count in self.itemsets_frequentes.items():
-            if len(itemset) < 2:
+        regras = [] #Cria lista vaia de regras
+
+        for itemset, suporte_itemset in self.itemsets_frequentes.items(): #passa por todos os itens e seus respsctivos suportes em itens frequentes encontrados
+            if len(itemset) < 2: #só continua se houver combinação (mais de um item)
                 continue
-            supp_xy = sup_xy_count / N
-            itens = list(itemset)
-            for r in range(1, len(itens)):
-                for A in combinations(itens, r):
-                    A = frozenset(A)
-                    B = itemset - A
-                    sup_a = self.itemsets_frequentes.get(A, 0)
-                    sup_b = self.itemsets_frequentes.get(B, 0)
-                    if sup_a == 0 or sup_b == 0:
+
+            itens = list(itemset) #(transforma o itemset em lista)
+            for idx in range(1, len(itens)): #itera sobre a quantidade de itens no itemset
+                for itens_antecedentes in combinations(itens, idx): #combina todos os itens atecedentes (que começa com um só graças ao idx) com os itens consequencia
+                    itens_antecedentes = frozenset(itens_antecedentes) #gera um frozenset com os itens antecedentes
+                    itens_consequencia = itemset - itens_antecedentes #gera os itens consequencia
+
+                    suporte_itens_antecedentes = self.itemsets_frequentes.get(itens_antecedentes, 0) #pega o suporte dos itens antecedentes
+                    suporte_itens_restantes = self.itemsets_frequentes.get(itens_consequencia, 0) #pega o suporte dos intens consequencia
+                    if suporte_itens_antecedentes == 0 or suporte_itens_restantes == 0: #verifica se esse suporte realmente existe
                         continue
-                    conf = supp_xy / (sup_a / N)
-                    lift = conf / (sup_b / N)
-                    if conf >= self.min_confianca and lift >= self.min_lift:
+
+                    confianca = suporte_itemset / suporte_itens_antecedentes #calcula a confiança (probabilidade de B ocorrer dado que A ocorreu.)
+                    lift = confianca / suporte_itens_restantes #calcula o lift (Mede o quanto a presença de A aumenta (ou não) a chance de B.)
+
+                    if confianca >= self.min_confianca and lift >= self.min_lift: #adiciona a regra a lista de regras se passar pela confiação e lift minimos
+
                         regras.append({
-                            "antecedente": tuple(sorted(A)),
-                            "consequente": tuple(sorted(B)),
-                            "suporte": supp_xy,
-                            "confianca": conf,
+                            "antecedente": tuple(sorted(itens_antecedentes)), #transforma em tupla porque conjuntos (set) não podem ser salvos diretamente em CSV ou DataFrame.
+                            "consequente": tuple(sorted(itens_consequencia)),
+                            "suporte": suporte_itemset,
+                            "confianca": confianca,
                             "lift": lift
                         })
-        regras.sort(key=lambda r: (-r["lift"], -r["confianca"], -r["suporte"]))
-        self.regras = regras
+
+        regras.sort(key=lambda r: (-r["lift"], -r["confianca"], -r["suporte"])) #ordena as regras
+        self.regras = regras #atribui as regras
         print(f"Regras geradas: {len(self.regras)}")
-        return self
+        return self 
 
     def regras_df(self) -> pd.DataFrame:
         if not self.regras:
@@ -109,10 +117,10 @@ class MineradorECLAT:
     def recomendar(self, itens_carrinho, top_n=5):
         carrinho = set(itens_carrinho)
         rank = defaultdict(float)
-        for r in self.regras:
-            ant = set(r["antecedente"])
-            if ant.issubset(carrinho):
-                for c in r["consequente"]:
-                    if c not in carrinho:
-                        rank[c] += r["lift"] * r["confianca"]
+        for regra in self.regras:
+            antecedente = set(regra["antecedente"])
+            if antecedente.issubset(carrinho):
+                for consequente in regra["consequente"]:
+                    if consequente not in carrinho:
+                        rank[consequente] += regra["lift"] * regra["confianca"]
         return sorted(rank.items(), key=lambda x: x[1], reverse=True)[:top_n]

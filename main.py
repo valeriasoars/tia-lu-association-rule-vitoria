@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     # 2) ECLAT
     miner = MineradorECLAT(min_suporte=0.01, min_confianca=0.40, min_lift=1.10)
-    miner.ajustar(transacoes, max_tamanho=3).gerar_regras()
+    miner.minerar_itemsets(transacoes, max_tamanho=3).gerar_regras()
 
     # 3) Análise e exemplos
     analisar_resultados(miner)
@@ -29,4 +29,4 @@ if __name__ == "__main__":
 
     fi_df.to_csv("itemsets_frequentes_eclat.csv", index=False, encoding="utf-8")
     regras_df.to_csv("regras_associacao_eclat.csv", index=False, encoding="utf-8")
-    print("\n Arquivos salvos: itemsets_frequentes_eclat.csv, regras_associacao_eclat.csv")
+

@@ -9,7 +9,6 @@ class PreprocessadorVestuario:
     """
 
     def __init__(self):
-        #Set de palavras irrelevantes 
         self.palavras_irrelevantes = {
             "pimpolho","micol","kids","baby","modas","luziane","italico","minasrey","bilu",
             "mrm","dengo","flaphy","rekorte","d","vystek","ld","needfeel","mecbee","rianna",
@@ -17,34 +16,28 @@ class PreprocessadorVestuario:
             "intima","confeccoes","fashion","sergio","visual","mania","dom","matheus","sg","de","da","do","com","sem","para","no","na","ao","a","o","e","c","x","tag",
             "pares","cos","bojo","aberto","tradicional","algodao","elastico","cordao"
         }
-
-        #Categorias extraídas por nós - Adicionar uma exploração com pandas no projeto?  
+  
         self.categorias_mapeamento = {
-            # superiores
-            "camisa": {"camisa","camiseta","blusa","polo","t shirt","tshirt"},
-            "regata": {"regata","machao"},
-            # inferiores
-            "short": {"short","shorts","bermuda","mauricinho"},
-            "calca": {"calca","jeans","sarja","moletom","legging"},
+            "camisa": {"camisa","camiseta","blusa","polo","gola polo","t shirt","tshirt", "t-shirt","baby look","bata","cropped","camisa manga" },
+            "regata": {"regata","machao","machão"},
+            "short": {"short","shorts","bermuda","mauricinho", "tactel","short-saia","short saia", "bermudinha" },
+            "calca": {"calca","jeans","sarja","moletom","legging","leggue","legin","jogger","calça" },
             "saia": {"saia"},
-            # íntimos
-            "calcinha": {"calcinha","tanga"},
-            "cueca": {"cueca","boxer","cuecas"},
-            "sutia": {"sutia","top"},
-            "sunga": {"sunga"},
+            "calcinha": {"calcinha","tanga","fio dental","calcinha box"},
+            "cueca": {"cueca","boxer","cuecas", "cueca box"},
+            "sutia": { "sutia","top","sutiã","top cropped","bojo"},
+            "sunga": {"sunga", "sungas"},
             "fralda_pano": {"fralda","fraldinha","cueiro"},
-            # dormir
-            "pijama": {"pijama","baby doll"},
-            # outros
-            "meia": {"meia","meia calca"},
-            "body": {"body"},
-            "macacao": {"macacao","macaquito"},
+            "pijama": {"pijama","baby doll","camisola","pijama longo","pijama curto"},
+            "meia": {"meia","meia calca", "meiao", "meias"},
+            "body": {"body","bory","bodie"},
+            "mijao": {"mijao","mijão","mijão aberto","mijao aberto"},
+            "macacao": {  "macacao","macaquito","macacão","jardineira","macacao curto","macacao longo"},
             "jaqueta": {"jaqueta","casaco","cardigan"},
             "vestido": {"vestido","vestidos"},
-            "biquini": {"biquini","bikini"},
+            "biquini": { "biquini","bikini","maio","maiô"},
             "toalha": {"toalha","toalhas","toalha rosto","toalha banho","toalha de rosto","toalha de banho"},
-            "roupa_cama": {"lencol","lençol","jogo de cama","fronha","edredom","coberta","cobertor","manta","cobre leito"},
-
+            "roupa_cama": {"lencol","lençol","jogo de cama","fronha","edredom","coberta","cobertor","manta","cobre leito","travesseiro", "protetor"}
         }
 
     #Usa o unicode e o re pra padronizar os textos de descricao

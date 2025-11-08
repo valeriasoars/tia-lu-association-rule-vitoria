@@ -1,7 +1,6 @@
 import pandas as pd
 from collections import Counter
-import re
-import matplotlib.pyplot as plt
+
 
 df = pd.read_csv("vendas_dataset.csv")
 

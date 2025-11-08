@@ -13,7 +13,7 @@ if __name__ == "__main__":
     print(f"\nTransações após processamento: {len(transacoes)}")
 
     # 2) ECLAT
-    miner = MineradorECLAT(min_suporte=0.01, min_confianca=0.40, min_lift=1.10)
+    miner = MineradorECLAT(min_suporte=0.06, min_confianca=0.40, min_lift=1.10)
     miner.minerar_itemsets(transacoes, max_tamanho=3).gerar_regras()
 
     # 3) Análise e exemplos

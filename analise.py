@@ -21,8 +21,8 @@ def analisar_resultados(modelo_eclat):
         print()
 
     if modelo_eclat.regras:
-        print("\nTOP 20 REGRAS DE ASSOCIAÇÃO:\n")
-        for i, r in enumerate(modelo_eclat.regras[:20], 1):
+        print("\nTOP REGRAS DE ASSOCIAÇÃO:\n")
+        for i, r in enumerate(modelo_eclat.regras[:10], 1):
             ant = " + ".join(r["antecedente"])
             cons = " + ".join(r["consequente"])
             print(f"{i:2d}. [{ant}] → [{cons}] | sup={r['suporte']:.2%} conf={r['confianca']:.1%} lift={r['lift']:.2f}")

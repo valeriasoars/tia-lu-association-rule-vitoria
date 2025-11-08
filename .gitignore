@@ -1,0 +1,4 @@
+venv
+__pycache__
+itemsets_frequentes_eclat.csv
+regras_associacao_eclat.csv
